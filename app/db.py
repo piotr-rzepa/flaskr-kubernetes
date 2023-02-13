@@ -1,7 +1,7 @@
-import sqlite3
-
 import click
+import mysql.connector as mysql
 from flask import current_app, g
+from mysql.connector import errorcode
 
 
 def get_db():
@@ -10,10 +10,21 @@ def get_db():
     again.
     """
     if "db" not in g:
-        g.db = sqlite3.connect(
-            current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
+        try:
+            g.db = mysql.connect(
+                host=current_app.config["DATABASE_HOST"],
+                user=current_app.config["DATABASE_USER"],
+                password=current_app.config["DATABASE_PASSWORD"],
+                database=current_app.config["DATABASE_NAME"]
+            )
+        except mysql.Error as err:
+            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                print("Something is wrong with your user name or password")
+            elif err.errno == errorcode.ER_BAD_DB_ERROR:
+                print("Database does not exist")
+            else:
+                print(err)  
+            raise SystemExit(1) from err      
 
     return g.db
 
@@ -32,8 +43,8 @@ def init_db():
     """Clear existing data and create new tables."""
     db = get_db()
 
-    with current_app.open_resource("schema.sql") as f:
-        db.executescript(f.read().decode("utf8"))
+    with current_app.open_resource("../db/schema.sql") as f:
+        db.cursor().execute(f.read().decode("utf8"))
 
 
 @click.command("init-db")
