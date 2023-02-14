@@ -29,3 +29,16 @@ Application is configured to use MySQL database instead of in-memory SQLite3.
 ## Kubernetes setup
 
 Kubernetes cluster consists of two worker nodes and one control-plane node, all running K8s v1.26.0
+
+## Running Application using deployment script (separate Dockerfiles)
+
+```bash
+$ chmod +x scripts/deploy.sh
+$ ./scripts/deploy.sh \
+    --network <network>
+    --mysql <image_name>
+    --password <mysql_root_password>
+    --flask <image_name>
+```
+
+You can pass an additional `--prune` flag to remove all the existing resources before provisioning new ones using the script.
