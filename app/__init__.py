@@ -1,16 +1,21 @@
 import os
 
+import dotenv
 from flask import Flask
 
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
     app = Flask(__name__, instance_relative_config=True)
+    dotenv.load_dotenv()
     app.config.from_mapping(
-        # a default secret that should be overridden by instance config
-        SECRET_KEY="dev",
         # store the database in the instance folder
+        SECRET_KEY=os.getenv("APP_SECRET_KEY"),
         DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
+        DATABASE_NAME=os.getenv("DATABASE_NAME"),
+        DATABASE_USER=os.getenv("DATABASE_USER"),
+        DATABASE_PASSWORD=os.getenv("DATABASE_PASSWORD"),
+        DATABASE_HOST=os.getenv("DATABASE_HOST"),
     )
 
     if test_config is None:

@@ -2,6 +2,7 @@ import functools
 
 from flask import (Blueprint, flash, g, redirect, render_template, request,
                    session, url_for)
+from mysql.connector import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.db import get_db
@@ -31,8 +32,10 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
+        cursor = get_db().cursor(dictionary=True)
+        cursor.execute("SELECT * FROM user WHERE id = %s", (user_id,))
         g.user = (
-            get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
+            cursor.fetchone()
         )
 
 
@@ -47,6 +50,7 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         db = get_db()
+        cursor = db.cursor()
         error = None
 
         if not username:
@@ -56,12 +60,12 @@ def register():
 
         if error is None:
             try:
-                db.execute(
-                    "INSERT INTO user (username, password) VALUES (?, ?)",
+                cursor.execute(
+                    "INSERT INTO user (username, password) VALUES (%s, %s)",
                     (username, generate_password_hash(password)),
                 )
                 db.commit()
-            except db.IntegrityError:
+            except IntegrityError:
                 # The username was already taken, which caused the
                 # commit to fail. Show a validation error.
                 error = f"User {username} is already registered."
@@ -81,10 +85,12 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
         db = get_db()
+        cursor = db.cursor(dictionary=True)
         error = None
-        user = db.execute(
-            "SELECT * FROM user WHERE username = ?", (username,)
-        ).fetchone()
+        cursor.execute(
+            "SELECT * FROM user WHERE username = %s", (username,)
+        )
+        user = cursor.fetchone()
 
         if user is None:
             error = "Incorrect username."
