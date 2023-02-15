@@ -10,12 +10,11 @@ def create_app(test_config=None):
     dotenv.load_dotenv()
     app.config.from_mapping(
         # store the database in the instance folder
-        SECRET_KEY=os.getenv("APP_SECRET_KEY"),
-        DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
-        DATABASE_NAME=os.getenv("DATABASE_NAME"),
-        DATABASE_USER=os.getenv("DATABASE_USER"),
-        DATABASE_PASSWORD=os.getenv("DATABASE_PASSWORD"),
-        DATABASE_HOST=os.getenv("DATABASE_HOST"),
+        SECRET_KEY=os.getenv("FLASK_APP_SECRET_KEY"),
+        DATABASE_NAME=os.getenv("MYSQL_DB_NAME"),
+        DATABASE_USER=os.getenv("MYSQL_FLASK_USER"),
+        DATABASE_PASSWORD=os.getenv("MYSQL_FLASK_PASSWORD"),
+        DATABASE_HOST=os.getenv("MYSQL_HOSTNAME"),
     )
 
     if test_config is None:
