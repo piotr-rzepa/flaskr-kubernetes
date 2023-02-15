@@ -1,0 +1,45 @@
+services:
+  blog:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    ports:
+      - "5000:5000"
+    container_name: blog-app
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 1m
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:${MYSQL_VERASION}
+    container_name: ${MYSQL_HOSTNAME}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u ${MYSQL_ROOT_USER}", "-p${MYSQL_ROOT_PASSWORD}", "--silent"]
+      interval: 1m
+      timeout: 30s
+      retries: 3
+      start_period: 30s
+    restart: always
+    ports:
+      - "3306:${MYSQL_PORT}"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_FLASK_USER}
+      - MYSQL_PASSWORD=${MYSQL_FLASK_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DB_NAME}
+  
+
+volumes:
+  mysql-data: {}
+
+    
+

@@ -1,8 +1,8 @@
 FROM python:3.10.10-buster
 
-EXPOSE 5000
-
 WORKDIR /flaskr
+
+ENV FLASK_RUN_HOST=0.0.0.0
 
 RUN mkdir -pv app
 
@@ -16,4 +16,6 @@ RUN pip install -e .
 
 RUN pip install -r app/requirements.txt
 
-CMD [ "flask", "--app", "app", "--debug", "run", "--host=0.0.0.0"]
+EXPOSE 5000
+
+CMD [ "flask", "--app", "app", "run"]
