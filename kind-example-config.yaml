@@ -1,0 +1,14 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  image: kindest/node:v1.26.0
+  extraPortMappings:
+    - containerPort: 30423
+      hostPort: 30423
+      listenAddress: "0.0.0.0"
+      protocol: TCP
+- role: worker
+  image: kindest/node:v1.26.0
+- role: worker
+  image: kindest/node:v1.26.0
