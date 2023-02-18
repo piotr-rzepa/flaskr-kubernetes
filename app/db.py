@@ -17,13 +17,19 @@ def get_db():
                 password=current_app.config["DATABASE_PASSWORD"],
                 database=current_app.config["DATABASE_NAME"]
             )
+            current_app.logger.info("Connection established with remote MySQL database {db} at {instance}:{port} as user {user}".format(
+                instance=current_app.config["DATABASE_HOST"],
+                port="3306",
+                db=current_app.config["DATABASE_NAME"],
+                user=current_app.config["DATABASE_USER"]
+            ))
         except mysql.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                print("Something is wrong with your user name or password")
+                current_app.logger.error("Something is wrong with your user name or password")
             elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                print("Database does not exist")
+                current_app.logger.error("Database does not exist")
             else:
-                print(err)  
+                current_app.logger.error(err)  
             raise SystemExit(1) from err      
 
     return g.db
@@ -37,6 +43,7 @@ def close_db(e=None):
 
     if db is not None:
         db.close()
+        current_app.logger.debug("Closing database connection.")
 
 
 def init_db():
