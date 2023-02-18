@@ -10,8 +10,6 @@ COPY app/ app/
 
 COPY pyproject.toml .
 
-COPY .env .
-
 RUN pip install -e .
 
 RUN pip install -r app/requirements.txt
