@@ -1,7 +1,7 @@
 import functools
 
-from flask import (Blueprint, flash, g, redirect, render_template, request,
-                   session, url_for)
+from flask import (Blueprint, current_app, flash, g, redirect, render_template,
+                   request, session, url_for)
 from mysql.connector import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -46,6 +46,7 @@ def register():
     Validates that the username is not already taken. Hashes the
     password for security.
     """
+    current_app.logger.debug("Handling {req_type} request to /register route.".format(req_type=request.method))
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -81,6 +82,7 @@ def register():
 @bp.route("/login", methods=("GET", "POST"))
 def login():
     """Log in a registered user by adding the user id to the session."""
+    current_app.logger.debug("Handling {req_type} request to /login route.".format(req_type=request.method))
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -111,5 +113,6 @@ def login():
 @bp.route("/logout")
 def logout():
     """Clear the current session, including the stored user id."""
+    current_app.logger.debug("Handling request to /logout route.")
     session.clear()
     return redirect(url_for("index"))

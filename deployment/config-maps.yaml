@@ -1,0 +1,57 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flask-data
+  namespace: flask-blog
+data:
+  mysql_database_name: flaskr
+  mysql_database_port: "3306"
+  # <statefulset pod name>.<headless service name>.<namespace>.svc.cluster.local
+  # Why use headless service for stateful set?
+  # We get stable and consistent DNS naming
+  # re-created pod receives same unique identifier as before
+  # No loadbalancing - single master db, rest used as read replicas
+  mysql_headless_service_hostname: mysql-stateful-set-0.mysql-service.flask-blog.svc.cluster.local
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init-script
+  namespace: flask-blog
+data:
+  schema.sql: |
+    -- Initialize the database.
+    -- Drop any existing data and create empty tables.
+
+    DROP DATABASE IF EXISTS flaskr;
+
+    CREATE DATABASE flaskr;
+
+    USE flaskr;
+
+    DROP TABLE IF EXISTS user;
+    DROP TABLE IF EXISTS post;
+
+    CREATE TABLE user (
+      id INT NOT NULL AUTO_INCREMENT,
+      username VARCHAR(255) NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      PRIMARY KEY (id),
+      UNIQUE (username)
+    );
+
+    CREATE TABLE post (
+      id INT NOT NULL AUTO_INCREMENT,
+      author_id INT NOT NULL,
+      created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+      title VARCHAR(255) NOT NULL,
+      body VARCHAR(255) NOT NULL,
+      PRIMARY KEY (id),
+      FOREIGN KEY (author_id) REFERENCES user(id)
+    );    
+
+    GRANT SELECT, INSERT ON flaskr.* TO 'piotr'@'%';
+
+    FLUSH PRIVILEGES;

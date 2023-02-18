@@ -1,5 +1,5 @@
-from flask import (Blueprint, flash, g, redirect, render_template, request,
-                   url_for)
+from flask import (Blueprint, current_app, flash, g, redirect, render_template,
+                   request, url_for)
 from werkzeug.exceptions import abort
 
 from app.auth import login_required
@@ -11,6 +11,7 @@ bp = Blueprint("blog", __name__)
 @bp.route("/")
 def index():
     """Show all the posts, most recent first."""
+    current_app.logger.debug("Handling request to / route.")
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute("USE flaskr")
@@ -55,6 +56,7 @@ def get_post(id, check_author=True):
 @login_required
 def create():
     """Create a new post for the current user."""
+    current_app.logger.debug("Handling {req_type} request to /create route.".format(req_type=request.method))
     if request.method == "POST":
         title = request.form["title"]
         body = request.form["body"]
@@ -82,6 +84,7 @@ def create():
 @login_required
 def update(id):
     """Update a post if the current user is the author."""
+    current_app.logger.debug("Handling {req_type} request to /{id}/update route.".format(req_type=request.method, id=id))
     post = get_post(id)
 
     if request.method == "POST":
@@ -114,6 +117,7 @@ def delete(id):
     Ensures that the post exists and that the logged in user is the
     author of the post.
     """
+    current_app.logger.debug("Handling {req_type} request to /{id}/delete route.".format(req_type=request.method, id=id))
     get_post(id)
     db = get_db()
     cursor = db.cursor()
