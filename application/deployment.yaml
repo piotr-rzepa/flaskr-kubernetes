@@ -16,6 +16,11 @@ spec:
         app: flask-app
         type: blog
     spec:
+      tolerations:
+      - key: kubernetes.io/hostname
+        operator: Equal
+        value: kind-control-plane
+        effect: NoSchedule
       containers:
       - name: flask-app
         image: blog:v1.0.0

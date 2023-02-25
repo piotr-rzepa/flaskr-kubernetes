@@ -15,6 +15,11 @@ spec:
         db: mysql-instance
         app: flask-app
     spec:
+      tolerations:
+      - key: kubernetes.io/hostname
+        operator: Equal
+        value: kind-control-plane
+        effect: NoSchedule
       containers:
       - name: mysql
         image: mysql:8.0.32

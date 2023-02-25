@@ -1,0 +1,85 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-configmap
+  namespace: logging
+data:
+  elasticsearch.yml: |
+    xpack.security.enabled: false
+    xpack.security.transport.ssl.enabled: false
+    xpack.security.http.ssl.enabled: false
+    network.host: "0.0.0.0"
+    discovery.type: single-node
+  node_name: "elasticsearch"
+  bootstrap_memory_lock: "false"
+  java_options: "-Xms512m -Xmx512m"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-configmap
+  namespace: logging
+data:
+  kibana.yml: |
+    elasticsearch.ssl.verificationMode: none
+    server.host: "0.0.0.0"
+    server.port: 5601
+    server.ssl.enabled: false
+    status.allowAnonymous: true
+  elasticsearch_hosts: '["http://elasticsearch:9200"]'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-configmap
+  namespace: logging
+data:
+  fluent.conf: |
+    @include pods-fluent.conf
+    @include elastic-fluent.conf
+    # @include file-fluent.conf
+
+  # Fluent configuration file for pods' logs
+  pods-fluent.conf: |
+    <source>
+      @type tail
+      read_from_head true
+      tag kubernetes.*
+      path /var/log/containers/flask*.log,/var/log/containers/mysql*.log
+      pos_file /var/log/fluentd-container.log.pos
+      exclude_path ["/var/log/containers/fluent*.log"]
+      <parse>
+        @type regexp
+        expression /^(?<time>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z)\s(?<stream>stderr|stdout)\s*(?<char>[A-Z]){1}\s(?<message>.+)$/i
+      </parse>
+    </source>
+
+    # Requires RBAC set for accessing Kubernetes API
+    <filter kubernetes.**>
+      @id filter_kubernetes_metadata
+      @type kubernetes_metadata
+    </filter>
+
+  # For testing purposes - send all logs to a file
+  file-fluent.conf: |
+    <match **>
+      @type file
+      path /tmp/fluent-logs-file.log
+    </match>
+  elastic-fluent.conf: |
+    <match **>
+      @type elasticsearch
+      host elasticsearch
+      port 9200
+      scheme http
+      index_name fluentd
+      type_name fluentd
+      include_timestamp true
+      include_tag_key true
+      logstash_format false
+      flush_interval 10s
+    </match>
+  elasticsearch_host: elasticsearch
+  elasticsearch_port: "9200"
+  elasticsearch_scheme: http
