@@ -13,7 +13,6 @@ data:
   # re-created pod receives same unique identifier as before
   # No loadbalancing - single master db, rest used as read replicas
   mysql_headless_service_hostname: mysql-stateful-set-0.mysql-service.flask-blog.svc.cluster.local
-
 ---
 apiVersion: v1
 kind: ConfigMap

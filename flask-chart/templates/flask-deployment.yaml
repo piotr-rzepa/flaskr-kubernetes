@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-deployment
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "flask-chart.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "flask-chart.appLabels" . | nindent 6 }}
+  replicas: {{ .Values.app.replicas }}
+  template:
+    metadata:
+      labels:
+        {{- include "flask-chart.appLabels" . | nindent 8 }}
+        {{- include "flask-chart.labels" . | nindent 8 }}
+    spec:
+      {{- include "flask-chart.noSchedule" . | nindent 6 }}
+      containers:
+      - name: {{ .Values.app.name }}
+        image: {{ .Values.app.image }}
+        # https://iximiuz.com/en/posts/kubernetes-kind-load-docker-image/
+        imagePullPolicy: {{ .Values.app.imagePullPolicy }}
+        resources:
+          {{- toYaml .Values.app.resources | nindent 10 }}
+        env:
+          - name: MYSQL_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: mysql_database_port
+                name: {{ .Chart.Name }}-configmap
+          - name: MYSQL_DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                key: mysql_database_name
+                name: {{ .Chart.Name }}-configmap
+          - name: MYSQL_HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                key: mysql_headless_service_hostname
+                name: {{ .Chart.Name }}-configmap
+          - name: MYSQL_FLASK_USER
+            valueFrom:
+              secretKeyRef:
+                key: username
+                name: {{ .Chart.Name }}-mysql-user
+          - name: MYSQL_FLASK_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: {{ .Chart.Name }}-mysql-user
+          - name: FLASK_APP_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: flask_app_secret_key
+                name: {{ .Chart.Name }}-secret-key
+        ports:
+        - containerPort: {{ .Values.app.port }}

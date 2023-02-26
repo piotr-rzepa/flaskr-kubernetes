@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Chart.Name }}-statefulset
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "flask-chart.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "flask-chart.dbLabels" . | nindent 6 }}
+  serviceName: {{ .Chart.Name }}-mysql-service
+  replicas: {{ .Values.database.replicas }}
+  template:
+    metadata:
+      labels:
+        {{- include "flask-chart.dbLabels" . | nindent 4 }}
+        {{- include "flask-chart.labels" . | nindent 4 }}
+    spec:
+      {{- include "flask-chart.noSchedule" . | nindent 6 }}
+      containers:
+      - name: {{ .Values.database.containerName }}
+        image: {{ .Values.database.containerImage }}
+        ports:
+        - containerPort: {{ .Values.database.containerPort }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/mysql
+        - name: init-script
+          mountPath: /docker-entrypoint-initdb.d
+          readOnly: true
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: {{ .Chart.Name }}-mysql-superuser
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                key: username
+                name: {{ .Chart.Name }}-mysql-user
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: {{ .Chart.Name }}-mysql-user
+  
+      volumes:
+        - name: init-script
+          configMap:
+            name: {{ .Chart.Name }}-mysql-configmap
+
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi

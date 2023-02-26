@@ -1,0 +1,39 @@
+database:
+  name: hello-world
+  containerPort: 3306
+  containerName: mysql
+  containerImage: mysql:8.0.32
+  port: 3306
+  replicas: 1
+  flask:
+    username: piotr
+    password: piotr
+  root:
+    username: root
+    password: root
+
+elasticsearch:
+  nodeName: =====WOW=====
+  port: 9200
+  scheme: http
+
+app:
+  replicas: 2
+  name: flask-app
+  image: blog:v1.0.0
+  imagePullPolicy: Never
+  port: 5000
+  secretKey: 6cFKoOLSEeOZX5y8yQNqk5WWPBMW
+  resources:
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+
+appService:
+  port: 5000
+  targetPort: 5000
+  nodePort: 30423
+  type: NodePort
+
+dbService:
+  port: 3306

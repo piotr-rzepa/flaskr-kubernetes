@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "flask-chart.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "flask-chart.appLabels" . | nindent 4 }}
+  type: {{ .Values.appService.type | quote }}
+  ports:
+  - port: {{ .Values.appService.port }}
+    targetPort: {{ .Values.appService.targetPort }}
+    nodePort: {{ .Values.appService.nodePort }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-mysql-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "flask-chart.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.dbService.port }}
+  selector:
+    {{- include "flask-chart.dbLabels" . | nindent 4 }}
+  clusterIP: None
