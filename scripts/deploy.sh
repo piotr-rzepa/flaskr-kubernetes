@@ -1,85 +1,102 @@
 #!/bin/bash
 
-VALID_ARGS=$(getopt -o n:m:p:f:r --long network:,mysql:,password:,flask:,prune -- "$@")
-if [[ $? -ne 0 ]]; then
-    exit 1;
+#
+# Script for creating docker images for both Blog app and MySQL database and running them in containers
+# it also creates a shared network between two containers and has capabilities of removing provisioned infrastructure
+#
+
+if [[ -z $1 ]];
+then
+    echo "No docker network name argument passed."
+    exit 1
+fi
+if [[ -z $2 ]];
+then
+    echo "No Blog App image name argument passed."
+    exit 1
+fi
+if [[ -z $3 ]];
+then
+    echo "No Blog App image tag argument passed."
+    exit 1
+fi
+if [[ -z $4 ]];
+then
+    echo "No Blog App dockerfile path argument passed (relative)."
+    exit 1
+fi
+if [[ -z $5 ]];
+then
+    echo "No MySQL image name argument passed."
+    exit 1
+fi
+if [[ -z $6 ]];
+then
+    echo "No MySQL image tag argument passed."
+    exit 1
+fi
+if [[ -z $7 ]];
+then
+    echo "No MySQL dockerfile path argument passed (relative)."
+    exit 1
+fi
+if [[ -z $8 ]];
+then
+    echo "No MySQL root password passed."
+    exit 1
+fi
+if [[ -z $9 ]];
+then
+    echo "No MySQL volume name argument passed."
+    exit 1
+fi
+if [[ -z $10 ]];
+then
+    echo "No Blog App container name argument passed."
+    exit 1
+fi
+if [[ -z $11 ]];
+then
+    echo "No MySQL container name name argument passed."
+    exit 1
 fi
 
-eval set -- "$VALID_ARGS"
-while [ : ]; do
-  case "$1" in
-    -r | --prune)
-        echo "Removing existing resources..."
-        echo "Stopping MySQL container..."
-        docker stop $(docker ps --filter "name=mysql-flaskr" --format "{{.ID}}")
-        echo "Stopping Flask container..."
-        docker stop $(docker ps --filter "name=flask-app" --format "{{.ID}}")
-        echo "Removing MySQL named volume..."
-        docker volume rm mysql-data
-        echo "Removing bridged docker network..."
-        docker network rm $docker_network
-        echo "Removing MySQL image..."
-        docker image rm $mysql_img_name
-        echo "Removing Flask image..."
-        docker image rm $flask_img_name
-        shift 1
-        ;;
-    -n | --network)
-        docker_network=$2
-        shift 2
-        ;;
-    -m | --mysql)
-        mysql_img_name=$2
-        shift 2
-        ;;
-    -p | --password)
-        mysql_password=$2
-        shift 2
-        ;;
-    -f | --flask)
-        flask_img_name=$2
-        shift 2
-        ;;
-    --) shift;
-        break
-        ;;
-  esac
-done
-
-if docker network create $docker_network > /dev/null 2>&1; then
-    echo "Creating docker network: $docker_network"
+if docker network create $1 > /dev/null 2>&1;
+then
+    echo "Creating docker network: $1"
 else
-    echo "Error creating docker network: $docker_network. Does the network already exist?"
+    echo "Error creating docker network: $1. Does the network already exist?"
 fi
 
-echo "Creating MySQL image $mysql_img_name:latest"
+echo "Creating Blog App image $2:$3"
 docker build \
-    -t $mysql_img_name:latest \
-    --build-arg MYSQL_ROOT_PASS=$mysql_password \
-    -f $(pwd)/db/Dockerfile \
+    -t $2:$3 \
+    -f $(pwd)/$4 \
     .
 
-echo "Creating Flask app image $flask_img_name:latest"
+echo "Creating MySQL image $5:$6"
 docker build \
-    -t $flask_img_name:latest \
-    -f $(pwd)/app/Dockerfile \
+    -t $5:$6 \
+    --build-arg MYSQL_ROOT_PASS=$8 \
+    -f $(pwd)/$7 \
     .
+
 
 echo "Running MySQL container.."
 docker run \
     -p 3306:3306 \
-    --mount type=volume,src=mysql-data,target=/var/lib/mysql \
+    --mount type=volume,src=$9,target=/var/lib/mysql \
     --rm \
     -d \
-    --network $docker_network \
-    --name mysql-flaskr \
-    $mysql_img_name:latest
+    --network $1 \
+    --name $11 \
+    $5:$6
 
 echo "Running Flask app container.."
 docker run \
     -p 5000:5000 \
     --rm \
     -d \
-    --network $docker_network \
-    --name flask-app \
-    $flask_img_name:latest
+    --network $1 \
+    --name $10 \
+    $2:$3
