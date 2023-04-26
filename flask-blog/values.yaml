@@ -1,0 +1,52 @@
+# Default values for flask-blog.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Name of the MySQL DB used for Flask Blog App
+mySqlDatabaseName: flaskr
+
+# Port on which the MySQL is listening for connections
+mySqlDatabasePort: "3306"
+
+# Secret key for Flask App, which will be base64 encoded
+flaskAppSecretKey: "my-super-secret-flask-key"
+
+# Name of the Flask user account interacting with MySQL
+flaskDatabaseUsername: flask
+
+# Password of the Flask user account interacting with MySQL
+flaskDatabasePassword: flask
+
+# Name of the Superuser MySQL account
+rootDatabaseUsername: admin
+
+# Password of the Superuser MySQL account
+rootDatabasePassword: admin
+
+# (Optional) Custom name of the chart
+nameOverride:
+
+# (Optional) Custom full name of the chart. Truncated at 64 chars.
+fullnameOverride:
+
+# Number of Flask Blog App instances (replicas)
+flaskAppReplicasNumber: 2
+
+# Configuration dictionary for retrieving flask image
+flaskImage:
+  repository: blog
+  tag: v1.0.0
+  digest: null
+  pullPolicy: Never
+
+# Configuration dictionary for specifying Flask Blog App resource quotas
+flaskResources:
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+  requests:
+    memory: "512Mi"
+    cpu: "1000m"
+
+# Port on which Flask Blog App is listening for connections
+flaskAppContainerPort: 5000

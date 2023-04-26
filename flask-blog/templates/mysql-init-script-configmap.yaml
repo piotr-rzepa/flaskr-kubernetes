@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "flask-blog.name" . }}-mysql-init-script
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "flask-blog.labels" . | nindent 4 }}
+data:
+{{ (.Files.Glob "*.sql").AsConfig | indent 2 }}

@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "flask-blog.name" . }}-data-configmap
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "flask-blog.labels" . | nindent 4 }}
+data:
+  mysql_database_name: {{ .Values.mySqlDatabaseName | quote | lower}}
+  mysql_database_port: {{ default "3306" .Values.mySqlDatabasePort | quote}}
+  # <statefulset pod name>.<headless service name>.<namespace>.svc.cluster.local
+  # Why use headless service for stateful set?
+  # We get stable and consistent DNS naming
+  # re-created pod receives same unique identifier as before
+  # No loadbalancing - single master db, rest used as read replicas
+  mysql_headless_service_hostname: mysql-stateful-set-0.mysql-service.flask-blog.svc.cluster.local

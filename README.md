@@ -7,46 +7,17 @@ Link to the Flask app on Flask Documentation: <https://flask.palletsprojects.com
 
 The Application is being gradually moved from local setup to the container setup and finally, to the Kubernetes cluster.
 
+Stages of improvements:
+
+1. Docker (Building docker images manually and deploying using bash scripts).
+2. Docker-compose (Building and deploying using Docker-compose).
+3. Kind + Kubernetes (Building and deploying using YAML manifests and kubectl) [current setup].
+4. **Kind + Kubernetes + Helm (Building and deploying using Helm Charts) [current setup].**
+
 ## App setup
 
 Application is modified to use external MySQL database instead of in-memory SQLite3.
 MySQL database instance is listening on port `3306` (default) and initialized by `db/schema.sql` file, which is responsible for creating the database, tables and user, used by Flask application.
-
-## Separate Dockerfiles setup - v1.0.0
-
-```bash
-chmod +x scripts/deploy.sh
-./scripts/deploy.sh \
-    --network <network>
-    --mysql <image_name>
-    --password <mysql_root_password>
-    --flask <image_name>
-```
-
-You can pass an additional `--prune` flag to remove all the existing resources, before provisioning new ones using the script.
-
-## Docker Compose setup - v2.0.0
-
-File `docker-compose.yaml` defined at root directory of the project can be used to deploy a containerized stack of Flask and MySQL instances.
-It works out the same way as `scripts/deploy.sh`, but with addition of automatic network creation, env variables resolution support, and health checks, as well as automatically restarting the containers on failure
-
-To validate the compose file, with resolved environment variable:
-
-```bash
-docker-compose convert
-```
-
-To run a stack in _detached_ mode (including building any missing images):
-
-```bash
-docker-compose up --build -d
-```
-
-To remove stack and any related volumes/orphan containers:
-
-```bash
-docker compose down -v --remove-orphans
-```
 
 ## Kubernetes Kind Cluster setup - v3.0.0
 
