@@ -11,15 +11,15 @@ kind: ClusterRole
 metadata:
   name: fluentd
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - namespaces
-  verbs:
-  - get
-  - list
-  - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
 
 ---
 kind: ClusterRoleBinding
@@ -31,6 +31,6 @@ roleRef:
   name: fluentd
   apiGroup: rbac.authorization.k8s.io
 subjects:
-- kind: ServiceAccount
-  name: fluentd
-  namespace: logging
+  - kind: ServiceAccount
+    name: fluentd
+    namespace: logging

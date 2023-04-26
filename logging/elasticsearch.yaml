@@ -12,10 +12,10 @@ spec:
     app: flask-app
     department: elasticsearch-logging
   ports:
-  - protocol: TCP
-    name: http
-    port: 9200
-    targetPort: 9200
+    - protocol: TCP
+      name: http
+      port: 9200
+      targetPort: 9200
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -45,56 +45,44 @@ spec:
           securityContext:
             privileged: true
       tolerations:
-      - key: kubernetes.io/hostname
-        operator: Equal
-        value: kind-control-plane
-        effect: NoSchedule
+        - key: kubernetes.io/hostname
+          operator: Equal
+          value: kind-control-plane
+          effect: NoSchedule
       containers:
-      - name: elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 9200
-        - containerPort: 9300
-        env:
-          - name: node.name
-            valueFrom:
-              configMapKeyRef:
-                key: node_name
-                name: elasticsearch-configmap
-          - name: bootstrap.memory_lock
-            valueFrom:
-              configMapKeyRef:
-                key: bootstrap_memory_lock
-                name: elasticsearch-configmap
-          - name: ES_JAVA_OPTS
-            valueFrom:
-              configMapKeyRef:
-                key: java_options
-                name: elasticsearch-configmap
-        resources:
-          requests:
-            cpu: 2000m
-            memory: 4Gi
-          limits:
-            cpu: 2000m
-            memory: 4Gi
-        volumeMounts:
-          - name: elasticsearch-config
-            mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
-            subPath: elasticsearch.yml
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 9200
-          initialDelaySeconds: 180
-          periodSeconds: 10          
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 9200
-          initialDelaySeconds: 180
-          periodSeconds: 10
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9200
+            - containerPort: 9300
+          env:
+            - name: node.name
+              valueFrom:
+                configMapKeyRef:
+                  key: node_name
+                  name: elasticsearch-configmap
+            - name: bootstrap.memory_lock
+              valueFrom:
+                configMapKeyRef:
+                  key: bootstrap_memory_lock
+                  name: elasticsearch-configmap
+            - name: ES_JAVA_OPTS
+              valueFrom:
+                configMapKeyRef:
+                  key: java_options
+                  name: elasticsearch-configmap
+          resources:
+            requests:
+              cpu: 2000m
+              memory: 4Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+          volumeMounts:
+            - name: elasticsearch-config
+              mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+              subPath: elasticsearch.yml
       volumes:
         - name: elasticsearch-config
           configMap:

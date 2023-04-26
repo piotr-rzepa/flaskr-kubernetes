@@ -5,15 +5,15 @@ metadata:
   name: flask-app-service
   namespace: flask-blog
   labels:
-    app: flask-app  
+    app: flask-app
 spec:
   selector:
     type: blog
   type: NodePort
   ports:
-  - port: 5000
-    targetPort: 5000
-    nodePort: 30423
+    - port: 5000
+      targetPort: 5000
+      nodePort: 30423
 ---
 apiVersion: v1
 kind: Service
@@ -21,7 +21,7 @@ metadata:
   name: mysql-service
   namespace: flask-blog
   labels:
-    app: flask-app    
+    app: flask-app
 spec:
   ports:
     - port: 3306

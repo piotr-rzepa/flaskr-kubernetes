@@ -1,7 +1,16 @@
 import functools
 
-from flask import (Blueprint, current_app, flash, g, redirect, render_template,
-                   request, session, url_for)
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from mysql.connector import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -34,9 +43,7 @@ def load_logged_in_user():
     else:
         cursor = get_db().cursor(dictionary=True)
         cursor.execute("SELECT * FROM user WHERE id = %s", (user_id,))
-        g.user = (
-            cursor.fetchone()
-        )
+        g.user = cursor.fetchone()
 
 
 @bp.route("/register", methods=("GET", "POST"))
@@ -46,7 +53,11 @@ def register():
     Validates that the username is not already taken. Hashes the
     password for security.
     """
-    current_app.logger.debug("Handling {req_type} request to /register route.".format(req_type=request.method))
+    current_app.logger.debug(
+        "Handling {req_type} request to /register route.".format(
+            req_type=request.method
+        )
+    )
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -82,16 +93,16 @@ def register():
 @bp.route("/login", methods=("GET", "POST"))
 def login():
     """Log in a registered user by adding the user id to the session."""
-    current_app.logger.debug("Handling {req_type} request to /login route.".format(req_type=request.method))
+    current_app.logger.debug(
+        "Handling {req_type} request to /login route.".format(req_type=request.method)
+    )
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
         db = get_db()
         cursor = db.cursor(dictionary=True)
         error = None
-        cursor.execute(
-            "SELECT * FROM user WHERE username = %s", (username,)
-        )
+        cursor.execute("SELECT * FROM user WHERE username = %s", (username,))
         user = cursor.fetchone()
 
         if user is None:

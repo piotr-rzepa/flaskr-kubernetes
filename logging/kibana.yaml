@@ -12,10 +12,10 @@ spec:
     app: flask-app
     department: kibana-logging
   ports:
-  - protocol: TCP
-    name: http
-    port: 5601
-    targetPort: 5601
+    - protocol: TCP
+      name: http
+      port: 5601
+      targetPort: 5601
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -35,47 +35,35 @@ spec:
     metadata:
       labels:
         app: flask-app
-        department: kibana-logging    
+        department: kibana-logging
     spec:
       tolerations:
-      - key: kubernetes.io/hostname
-        operator: Equal
-        value: kind-control-plane
-        effect: NoSchedule
+        - key: kubernetes.io/hostname
+          operator: Equal
+          value: kind-control-plane
+          effect: NoSchedule
       containers:
-      - name: kibana
-        image: docker.elastic.co/kibana/kibana:8.6.2
-        env:
-          - name: ELASTICSEARCH_HOSTS
-            valueFrom:
-              configMapKeyRef:
-                key: elasticsearch_hosts
-                name: kibana-configmap
-        ports:
-        - containerPort: 5601
-        resources:
-          requests:
-            cpu: 1000m
-            memory: 1Gi
-          limits:
-            cpu: 2000m
-            memory: 2Gi
-        readinessProbe:
-          httpGet:
-            path: /status
-            port: 5601
-          initialDelaySeconds: 180
-          periodSeconds: 10          
-        livenessProbe:
-          httpGet:
-            path: /status
-            port: 5601
-          initialDelaySeconds: 180
-          periodSeconds: 10
-        volumeMounts:
-          - name: kibana-config
-            mountPath: "/usr/share/kibana/config/kibana.yml"
-            subPath: kibana.yml
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:8.6.2
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  key: elasticsearch_hosts
+                  name: kibana-configmap
+          ports:
+            - containerPort: 5601
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+          volumeMounts:
+            - name: kibana-config
+              mountPath: "/usr/share/kibana/config/kibana.yml"
+              subPath: kibana.yml
       volumes:
         - name: kibana-config
           configMap:
