@@ -28,6 +28,6 @@ CREATE TABLE post (
     FOREIGN KEY (author_id) REFERENCES user(id)
 );
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON flaskr.* TO 'piotr'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON flaskr.* TO 'user1'@'%';
 
 FLUSH PRIVILEGES;

@@ -33,6 +33,14 @@ def get_db():
             elif err.errno == errorcode.ER_BAD_DB_ERROR:
                 current_app.logger.error("Database does not exist")
             else:
+                current_app.logger.error(
+                    "Error connecting with remote MySQL database {db} at {instance}:{port} as user {user}".format(
+                        instance=current_app.config["DATABASE_HOST"],
+                        port="3306",
+                        db=current_app.config["DATABASE_NAME"],
+                        user=current_app.config["DATABASE_USER"],
+                    )
+                )
                 current_app.logger.error(err)
             raise SystemExit(1) from err
 
