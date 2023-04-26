@@ -7,7 +7,7 @@ spec:
   selector:
     matchLabels:
       db: mysql-instance
-  serviceName:  mysql-service
+  serviceName: mysql-service
   replicas: 1
   template:
     metadata:
@@ -16,49 +16,49 @@ spec:
         app: flask-app
     spec:
       tolerations:
-      - key: kubernetes.io/hostname
-        operator: Equal
-        value: kind-control-plane
-        effect: NoSchedule
+        - key: kubernetes.io/hostname
+          operator: Equal
+          value: kind-control-plane
+          effect: NoSchedule
       containers:
-      - name: mysql
-        image: mysql:8.0.32
-        ports:
-        - containerPort: 3306
-          name: database
-        volumeMounts:
-        - name: data
-          mountPath: /var/lib/mysql
-        - name: init-script
-          mountPath: "/docker-entrypoint-initdb.d"
-          readOnly: true
-        env:
-          - name: MYSQL_ROOT_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: password
-                name: mysql-superuser-auth
-          - name: MYSQL_USER
-            valueFrom:
-              secretKeyRef:
-                key: username
-                name: mysql-flask-auth
-          - name: MYSQL_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: password
-                name: mysql-flask-auth
-  
+        - name: mysql
+          image: mysql:8.0.32
+          ports:
+            - containerPort: 3306
+              name: database
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+            - name: init-script
+              mountPath: "/docker-entrypoint-initdb.d"
+              readOnly: true
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: mysql-superuser-auth
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  key: username
+                  name: mysql-flask-auth
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: mysql-flask-auth
+
       volumes:
         - name: init-script
           configMap:
             name: mysql-init-script
 
   volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 5Gi
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi

@@ -1,5 +1,13 @@
-from flask import (Blueprint, current_app, flash, g, redirect, render_template,
-                   request, url_for)
+from flask import (
+    Blueprint,
+    current_app,
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from werkzeug.exceptions import abort
 
 from app.auth import login_required
@@ -15,12 +23,12 @@ def index():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute("USE flaskr")
-    query = ("SELECT p.id, title, body, created, author_id, username"
+    query = (
+        "SELECT p.id, title, body, created, author_id, username"
         " FROM post p JOIN user u ON p.author_id = u.id"
-        " ORDER BY created DESC")
-    cursor.execute(
-        query
+        " ORDER BY created DESC"
     )
+    cursor.execute(query)
     return render_template("blog/index.html", posts=cursor.fetchall())
 
 
@@ -36,9 +44,11 @@ def get_post(id, check_author=True):
     :raise 404: if a post with the given id doesn't exist
     :raise 403: if the current user isn't the author
     """
-    query = ("SELECT p.id, title, body, created, author_id, username"
-            " FROM post p JOIN user u ON p.author_id = u.id"
-            " WHERE p.id = %s")
+    query = (
+        "SELECT p.id, title, body, created, author_id, username"
+        " FROM post p JOIN user u ON p.author_id = u.id"
+        " WHERE p.id = %s"
+    )
     cursor = get_db().cursor(dictionary=True)
     cursor.execute(query, (id,))
     post = cursor.fetchone()
@@ -56,7 +66,9 @@ def get_post(id, check_author=True):
 @login_required
 def create():
     """Create a new post for the current user."""
-    current_app.logger.debug("Handling {req_type} request to /create route.".format(req_type=request.method))
+    current_app.logger.debug(
+        "Handling {req_type} request to /create route.".format(req_type=request.method)
+    )
     if request.method == "POST":
         title = request.form["title"]
         body = request.form["body"]
@@ -84,7 +96,11 @@ def create():
 @login_required
 def update(id):
     """Update a post if the current user is the author."""
-    current_app.logger.debug("Handling {req_type} request to /{id}/update route.".format(req_type=request.method, id=id))
+    current_app.logger.debug(
+        "Handling {req_type} request to /{id}/update route.".format(
+            req_type=request.method, id=id
+        )
+    )
     post = get_post(id)
 
     if request.method == "POST":
@@ -117,7 +133,11 @@ def delete(id):
     Ensures that the post exists and that the logged in user is the
     author of the post.
     """
-    current_app.logger.debug("Handling {req_type} request to /{id}/delete route.".format(req_type=request.method, id=id))
+    current_app.logger.debug(
+        "Handling {req_type} request to /{id}/delete route.".format(
+            req_type=request.method, id=id
+        )
+    )
     get_post(id)
     db = get_db()
     cursor = db.cursor()

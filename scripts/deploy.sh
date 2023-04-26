@@ -40,8 +40,8 @@ while [ : ]; do
         flask_img_name=$2
         shift 2
         ;;
-    --) shift; 
-        break 
+    --) shift;
+        break
         ;;
   esac
 done
