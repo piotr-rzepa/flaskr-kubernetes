@@ -1,6 +1,6 @@
 apiVersion: v2
-name: flask-blog
-description: A Helm chart for Kubernetes Flask Blog Application
+name: mysql
+description: A Helm chart for Kubernetes MySQL Database
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -21,10 +21,6 @@ version: 1.1.0
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "1.0.0"
+appVersion: "8.0.32"
 
 kubeVersion: "1.26.x"
-
-dependencies:
-  - name: mysql
-    version: ^1.1.0

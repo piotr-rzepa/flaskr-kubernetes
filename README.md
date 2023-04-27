@@ -19,9 +19,9 @@ Stages of improvements:
 Application is modified to use external MySQL database instead of in-memory SQLite3.
 MySQL database instance is listening on port `3306` (default) and initialized by `db/schema.sql` file, which is responsible for creating the database, tables and user, used by Flask application.
 
-## Kubernetes Kind Cluster setup - v3.0.0
+## Kubernetes Kind Cluster setup
 
-Kubernetes cluster consists of two worker nodes and one control-plane node, all running K8s v1.26.0, deployed using [Kind](https://kind.sigs.k8s.io/).
+Kubernetes cluster consists of two worker nodes and one control-plane node, all running K8s _v1.26.0_, deployed using [Kind](https://kind.sigs.k8s.io/).
 The config file for Kind Cluster is defined in `kind-example-config.yaml`. You can create the cluster running `kind create cluster --config kind-example-config.yaml`.
 The following addition in the config file:
 
@@ -33,12 +33,13 @@ The following addition in the config file:
       protocol: TCP
 ```
 
-Is required to be able to reach the pods via a _NodePort_ service type, which exposes the same port on worker node as defined in `hostPort` key-value pair. The Application does not have a Ingress Controller for managing external HTTP traffic, so it's the recommended way for reaching the service.
+Is required if you want to reach the pods via a _NodePort_ service type, which exposes the same port on worker node as defined in `hostPort` key-value pair.
+The Application does not have a Ingress Controller for managing external HTTP traffic, so it's the recommended way for reaching the service.
 
 Alternatively, you can reach the pods behind a service by using `kubectl port-forward svc/<service name> <port on host>:5000`. You can then open the browser and visit `localhost:<port on host>`.
 
-The basic setups consists of **two** replicas of Flask application, which state is controlled by _Deployment Controller_, exposed by a _NodePort_ type service to the user.
-The Flask communicates with a MySQL instance through headless service, which exposes a Stateful Set, destined to manage the state of MySQL.
+The default setup consists of **two** replicas of Flask application, which state is controlled by _Deployment Controller_, exposed by a _NodePort_ type service to the user.
+The Flask communicates with a MySQL instance through headless service, which exposes a Stateful Set, desired to manage the state of MySQL database.
 
 ```mermaid
 graph LR
@@ -57,38 +58,19 @@ end
 end
 ```
 
-### Python Flask Blog App
+## Deployment of the Application using Helm
 
-You are able to reach the Flask Blog app by visiting _localhost_ on port exposed by the service (**30423**), which will go through NodePort on one o the worker nodes and reach the pod (**5000**).
+First, a namespace where the resources should be placed has to be created (if it's different from the default namespace):
 
 ```bash
-curl localhost:30423 # or open browser and enter localhost:30423
+kubectl create ns <name of namespace>
 ```
 
-All files used for deployment of the application are defined in `application/` folder:
+Then, we can install the blog application using Helm package manager
 
-* `config-maps.yaml` - Describes all non-secret related data that the app requires to function properly - this includes DNS of the MySQL service, init script for database or environment variables for defining database name and operating port.
-* `secrets.yaml` - Describes all secret data that the app requires to function properly - this includes username and password of flask user, which will interact with MySQL database, root account credentials and secret keys.
-* `namespace.yaml` - Describes the namespace in kubernetes cluster, in which all application resources are deployed.
-* `services.yaml` - Describes two services for exposing pods matching certain labels - one for Flask app pods, second for MySQL instance respectively.
-* `deplyoment.yaml` - Describes the Deployment Controller for managing state of Flask Blog pods.
-* `stateful-set.yaml` - Describes the Stateful Set Controller for managing state of MySQL instance.
+```bash
+# In project's root directory
+helm install flask-blog --generate-name --atomic --namespace <name of the namespace> --dependency-update
+```
 
-The order in which the infrastructure should be deployed is:
-**namespace -> config-maps & secrets -> services -> statefulset -> deployment**
-
-It is possible to use `kubectl apply -f deployment/` to deploy all of them using single command, but the files are executed in **alphabetical order** (which may yield errors like trying to create resource in a namespace which is not yet created).
-
-### EFK stack for logging
-
-EFK stands for ElasticSearch (analyzing), Fluentd (collecting) and Kibana (visualizing). It's popular stack used to deploy standarized and centralized logging solution.
-
-All of the above resources are deployed on a Kubernetes cluster and defined inside `logging/` directory:
-
-* `config-maps.yaml` - Describes all _fluentd_ configuration files, which are responsible for enriching logs with kubernetes metadata and sending them to elasticsearch
-* `fluentd.yaml` - Deploys Fluentd as a daemon set, which runs on every node and collects logs from all the containers inside each pod
-* `namespace.yaml` - Describes the namespace in kubernetes cluster, in which all logging resources are deployed.
-* `elasticsearch.yaml` - Deploys ElasticSearch single node cluster for logs analytics
-* `kibana.yaml` - Deploys single replica of Kibana for logs visualizing
-
-Kubernetes plugin, already installed in Fluentd image for ElasticSearch, enriches the collected logs with additional kubernetes-related metadata, such as pod id, namespace, node name, image name etc.
+`--atomic` flag removes the resources in case of an installation failure.

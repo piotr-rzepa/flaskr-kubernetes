@@ -8,12 +8,12 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: flask-app
+      {{- include "flask-blog.selectorLabels" . | nindent 6 }}
   replicas: {{ .Values.flaskAppReplicasNumber }}
   template:
     metadata:
       labels:
-        {{- include "flask-blog.labels" . | nindent 8 }}
+        {{- include "flask-blog.selectorLabels" . | nindent 8 }}
     spec:
       tolerations:
         - key: kubernetes.io/hostname
@@ -35,31 +35,31 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: mysql_database_port
-                  name: {{ include "flask-blog.name" . }}-data-configmap
+                  name: {{ include "flask-blog.name" . }}
             - name: MYSQL_DB_NAME
               valueFrom:
                 configMapKeyRef:
                   key: mysql_database_name
-                  name: {{ include "flask-blog.name" . }}-data-configmap
+                  name: {{ include "flask-blog.name" . }}
             - name: MYSQL_HOSTNAME
               valueFrom:
                 configMapKeyRef:
                   key: mysql_headless_service_hostname
-                  name: {{ include "flask-blog.name" . }}-data-configmap
+                  name: {{ include "flask-blog.name" . }}
             - name: MYSQL_FLASK_USER
               valueFrom:
                 secretKeyRef:
-                  key: username
-                  name: {{ include "flask-blog.name" . }}-user-secret
+                  key: appUsername
+                  name: {{ include "mysql.name" .Subcharts.mysql }}
             - name: MYSQL_FLASK_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  key: password
-                  name: {{ include "flask-blog.name" . }}-user-secret
+                  key: appPassword
+                  name: {{ include "mysql.name" .Subcharts.mysql }}
             - name: FLASK_APP_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   key: flask_app_secret_key
-                  name: {{ include "flask-blog.name" . }}-flask-key-secret
+                  name: {{ include "flask-blog.name" . }}
           ports:
             - containerPort: {{ .Values.flaskAppContainerPort }}

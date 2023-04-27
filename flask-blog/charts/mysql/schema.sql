@@ -1,11 +1,11 @@
 -- Initialize the database.
 -- Drop any existing data and create empty tables.
 
-DROP DATABASE IF EXISTS flaskr;
+DROP DATABASE IF EXISTS {{ .Values.databaseName }};
 
-CREATE DATABASE flaskr;
+CREATE DATABASE {{ .Values.databaseName }};
 
-USE flaskr;
+USE {{ .Values.databaseName }};
 
 DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS post;
@@ -28,6 +28,6 @@ CREATE TABLE post (
     FOREIGN KEY (author_id) REFERENCES user(id)
 );
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON flaskr.* TO 'piotr'@'%';
+GRANT {{ join ", " .Values.databaseUserCapabilities }} ON {{ .Values.databaseName }}.* TO '{{ .Values.flaskDatabaseUsername }}'@'%';
 
 FLUSH PRIVILEGES;

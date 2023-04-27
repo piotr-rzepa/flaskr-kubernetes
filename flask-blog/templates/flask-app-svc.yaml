@@ -2,15 +2,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask-app-service
+  name: {{ include "flask-blog.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: flask-app
+    {{- include "flask-blog.labels" . | nindent 4 }}
 spec:
   selector:
-    type: blog
+    {{- include "flask-blog.selectorLabels" . | nindent 4 }}
   type: NodePort
   ports:
-    - port: 5000
-      targetPort: 5000
+    - port: {{ .Values.flaskAppContainerPort }}
+      targetPort: {{.Values.flaskAppContainerPort }}
       nodePort: 30423
