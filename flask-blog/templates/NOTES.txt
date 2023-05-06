@@ -1,0 +1,7 @@
+1. Get the application URL by running these commands:
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "flask-blog.name" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+2. Visit URL defined by aforementioned operations
+    echo http://$NODE_IP:$NODE_PORT
+3. If you kind cluster config does have an extra mapping configuration, you can visit http://localhost:$NODE_PORT
+
