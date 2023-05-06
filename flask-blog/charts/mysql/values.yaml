@@ -1,0 +1,46 @@
+# Default values for mysql.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+# nameOverride: mysql-chart
+
+# Name of the Flask user account interacting with MySQL
+flaskDatabaseUsername: flask
+
+# Password of the Flask user account interacting with MySQL
+flaskDatabasePassword: flask
+
+# Name of the Superuser MySQL account
+rootDatabaseUsername: admin
+
+# Password of the Superuser MySQL account
+rootDatabasePassword: admin
+
+databaseName: flaskr
+databaseUserCapabilities:
+  - SELECT
+  - INSERT
+  - UPDATE
+  - DELETE
+
+# Configuration dictionary for retrieving mysql image
+mysqlImage:
+  repository: mysql
+  tag: 8.0.32
+  digest:
+  pullPolicy: IfNotPresent
+
+# Configuration dictionary for specifying Flask Blog App resource quotas
+mysqlResources:
+  limits:
+    memory: "1024Mi"
+    cpu: "1000m"
+  requests:
+    memory: "512Mi"
+    cpu: "500m"
+
+volumeClaimAccessModes: ["ReadWriteOnce"]
+volumeClaimRequestStorage: "5Gi"
+databaseInstanceReplicas: 1
+
+# Port on which MySQL instance is listening for connections
+flaskAppContainerPort: 3306

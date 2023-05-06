@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mysql.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+data:
+# tpl function allows for using template syntax inside SQL schema files
+{{ tpl (.Files.Glob "*.sql").AsConfig . | indent 2 }}

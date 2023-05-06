@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mysql.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "mysql.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "mysql.name" . }}
+  replicas: {{ .Values.databaseInstanceReplicas }}
+  template:
+    metadata:
+      labels:
+        {{- include "mysql.selectorLabels" . | nindent 8 }}
+    spec:
+      tolerations:
+        - key: kubernetes.io/hostname
+          operator: Equal
+          value: kind-control-plane
+          effect: NoSchedule
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ include "mysql.getImage" . }}
+          imagePullPolicy: {{ .Values.mysqlImage.pullPolicy }}
+          resources:
+            requests:
+              {{- .Values.mysqlResources.requests | toYaml | nindent 14 }}
+            limits:
+              {{- .Values.mysqlResources.limits | toYaml | nindent 14 }}
+          ports:
+            - containerPort: {{ .Values.global.mySqlDatabasePort }}
+              name: database
+          volumeMounts:
+            - name: {{ include "mysql.name" . }}
+              mountPath: /var/lib/mysql
+            - name: init-script
+              mountPath: "/docker-entrypoint-initdb.d"
+              readOnly: true
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: rootPassword
+                  name: {{ include "mysql.name" . }}
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  key: appUsername
+                  name: {{ include "mysql.name" . }}
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: appPassword
+                  name: {{ include "mysql.name" . }}
+
+      volumes:
+        - name: init-script
+          configMap:
+            name: {{ include "mysql.name" . }}
+
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ include "mysql.name" . }}
+      spec:
+        accessModes: {{ .Values.volumeClaimAccessModes }}
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimRequestStorage | quote }}

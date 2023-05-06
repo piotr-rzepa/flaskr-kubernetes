@@ -1,3 +1,4 @@
+import os
 from flask import (
     Blueprint,
     current_app,
@@ -29,7 +30,9 @@ def index():
         " ORDER BY created DESC"
     )
     cursor.execute(query)
-    return render_template("blog/index.html", posts=cursor.fetchall())
+    return render_template(
+        "blog/index.html", posts=cursor.fetchall(), app_version=os.getenv("APP_VERSION")
+    )
 
 
 def get_post(id, check_author=True):

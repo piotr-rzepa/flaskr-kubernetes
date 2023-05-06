@@ -4,6 +4,10 @@ WORKDIR /flaskr
 
 ENV FLASK_RUN_HOST=0.0.0.0
 
+ARG DOCKER_TAG
+
+ENV APP_VERSION=${DOCKER_TAG}
+
 RUN mkdir -pv app
 
 COPY app/ app/
