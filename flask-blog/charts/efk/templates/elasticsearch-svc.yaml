@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "efk.elasticsearchName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "efk.elasticsearch.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "efk.elasticsearch.selectorLabels" . | nindent 4 }}
+  ports:
+    - protocol: TCP
+      name: http
+      port: {{ .Values.elasticsearch.options.port | int }}
+      targetPort: {{ .Values.elasticsearch.options.port | int }}

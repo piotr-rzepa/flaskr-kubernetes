@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "efk.elasticsearchName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "efk.elasticsearch.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "efk.elasticsearch.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "efk.elasticsearch.labels" . | nindent 8 }}
+    spec:
+      # https://www.elastic.co/guide/en/elasticsearch/reference/8.6/docker.html#_set_vm_max_map_count_to_at_least_262144
+      initContainers:
+        - name: vm-max-fix
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command: ["sysctl", "-w", "vm.max_map_count=262144"]
+          securityContext:
+            privileged: true
+      tolerations:
+        - key: kubernetes.io/hostname
+          operator: Equal
+          value: kind-control-plane
+          effect: NoSchedule
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ include "efk.elasticsearch.getImage" . }}
+          imagePullPolicy: {{ .Values.elasticsearch.image.pullPolicy}}
+          ports:
+            - containerPort: {{ .Values.elasticsearch.options.port | int }}
+            - containerPort: 9300
+          env:
+            - name: node.name
+              valueFrom:
+                configMapKeyRef:
+                  key: node_name
+                  name: {{ include "efk.elasticsearchName" . }}
+            - name: bootstrap.memory_lock
+              valueFrom:
+                configMapKeyRef:
+                  key: bootstrap_memory_lock
+                  name: {{ include "efk.elasticsearchName" . }}
+            - name: ES_JAVA_OPTS
+              valueFrom:
+                configMapKeyRef:
+                  key: java_options
+                  name: {{ include "efk.elasticsearchName" . }}
+          resources:
+            requests:
+              {{- .Values.elasticsearch.resources.requests | toYaml | nindent 14 }}
+            limits:
+              {{- .Values.elasticsearch.resources.limits | toYaml | nindent 14 }}
+          volumeMounts:
+            {{- .Values.elasticsearch.volumeMounts | toYaml | nindent 12 }}
+      volumes:
+        - name: elasticsearch-config
+          configMap:
+            name: {{ include "efk.elasticsearchName" . }}
