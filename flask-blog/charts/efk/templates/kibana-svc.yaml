@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "efk.kibanaName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "efk.kibana.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "efk.kibana.selectorLabels" . | nindent 4 }}
+  ports:
+    - protocol: TCP
+      name: http
+      port: {{ index .Values.kibana.config "server.port" | int }}
+      targetPort: {{ index .Values.kibana.config "server.port" | int }}

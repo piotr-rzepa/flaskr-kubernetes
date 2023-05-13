@@ -70,7 +70,15 @@ Then, we can install the blog application using Helm package manager
 
 ```bash
 # In project's root directory
-helm install flask-blog --generate-name --atomic --namespace <name of the namespace> --dependency-update
+helm install flask-blog --generate-name --atomic --namespace <YOUR_NAMESPACE> --dependency-update
 ```
 
 `--atomic` flag removes the resources in case of an installation failure.
+
+Helm Chart notes contain important information regarding application, including access, retrieving the IP address and/or ports. It also explain how to create and visualize data source from fluentd logs in Kibana Dashboard.\
+The Helm Chart notes will be displayed each time a new chart release is being installed or upgraded.
+To see the notes at any point, run
+
+```bash
+helm get notes <YOUR_RELEASE_NAME> -n <YOUR_NAMESPACE>
+```

@@ -1,0 +1,98 @@
+# Default values for efk.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+elasticsearchNameOverride: ""
+kibanaNameOverride: ""
+fluentdNameOverride: ""
+
+elasticsearch:
+  image:
+    repository: docker.elastic.co/elasticsearch/elasticsearch
+    tag: 8.6.2
+    digest:
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+    requests:
+      memory: 4Gi
+      cpu: 2000m
+  options:
+    node_name: elasticsearch
+    bootstrap_memory_lock: "false"
+    java_options: "-Xms512m -Xmx512m"
+    port: "9200"
+  config:
+    xpack.security.enabled: "false"
+    xpack.security.transport.ssl.enabled: "false"
+    xpack.security.http.ssl.enabled: "false"
+    network.host: "0.0.0.0"
+    discovery.type: single-node
+  volumeMounts:
+    - name: elasticsearch-config
+      mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+      subPath: elasticsearch.yml
+
+fluentd:
+  image:
+    repository: fluent/fluentd-kubernetes-daemonset
+    tag: v1-debian-elasticsearch
+    digest:
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      memory: 200Mi
+      cpu: 100m
+    requests:
+      memory: 200Mi
+      cpu: 100m
+  config:
+    elasticsearch_host: elasticsearch
+    elasticsearch_port: "9200"
+    elasticsearch_scheme: http
+  volumeMounts:
+    - name: fluentd-config
+      mountPath: /fluentd/etc
+    - name: varlog
+      mountPath: /var/log
+    - name: varlibdockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+  serviceAccountRules:
+    - apiGroups:
+        - ""
+      resources:
+        - pods
+        - namespaces
+      verbs:
+        - get
+        - list
+        - watch
+
+kibana:
+  image:
+    repository: docker.elastic.co/kibana/kibana
+    tag: 8.6.2
+    digest:
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      memory: 4Gi
+      cpu: 2000m
+    requests:
+      memory: 2Gi
+      cpu: 1000m
+  config:
+    elasticsearch.ssl.verificationMode: none
+    server.host: "0.0.0.0"
+    server.port: "5601"
+    server.ssl.enabled: "false"
+    status.allowAnonymous: "true"
+  volumeMounts:
+    - name: kibana-config
+      mountPath: /usr/share/kibana/config/kibana.yml
+      subPath: kibana.yml

@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "efk.kibanaName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "efk.kibana.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "efk.kibana.selectorLabels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "efk.kibana.selectorLabels" . | nindent 8 }}
+    spec:
+      tolerations:
+        - key: kubernetes.io/hostname
+          operator: Equal
+          value: kind-control-plane
+          effect: NoSchedule
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ include "efk.kibana.getImage" . }}
+          imagePullPolicy: {{ .Values.kibana.image.pullPolicy}}
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  key: elasticsearch_hosts
+                  name: {{ include "efk.kibanaName" . }}
+          ports:
+            - containerPort: {{ index .Values.kibana.config "server.port" | int }}
+          resources:
+            requests:
+              {{- .Values.kibana.resources.requests | toYaml | nindent 14 }}
+            limits:
+              {{- .Values.kibana.resources.limits | toYaml | nindent 14 }}
+          volumeMounts:
+            - name: kibana-config
+              mountPath: "/usr/share/kibana/config/kibana.yml"
+              subPath: kibana.yml
+      volumes:
+        - name: kibana-config
+          configMap:
+            name: {{ include "efk.kibanaName" . }}

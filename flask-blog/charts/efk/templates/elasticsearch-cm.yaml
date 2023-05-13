@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "efk.elasticsearchName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+   {{- include "efk.elasticsearch.labels" . | nindent 4 }}
+data:
+  {{- .Values.elasticsearch.options | toYaml | nindent 2 }}
+  elasticsearch.yml: |
+    {{- .Values.elasticsearch.config | toYaml | nindent 4 }}

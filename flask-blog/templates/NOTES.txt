@@ -1,7 +1,27 @@
+/*
+* ACCESSING THE FLASK BLOG WEBSITE
+*/
+
 1. Get the application URL by running these commands:
   export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "flask-blog.name" . }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+
 2. Visit URL defined by aforementioned operations
     echo http://$NODE_IP:$NODE_PORT
+
 3. If you kind cluster config does have an extra mapping configuration, you can visit http://localhost:$NODE_PORT
+
+/*
+* CONFIGURING KIBANA TO VISUALIZE LOGS FROM FLUENTD
+*/
+
+4. To visit the Kibana dashboard, run command to forward the traffic to your local host:
+  export KIBANA_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].port}" services {{ include "efk.kibanaName" .Subcharts.efk }})
+  kubectl port-forward svc/{{ include "efk.kibanaName" .Subcharts.efk }} $KIBANA_PORT:5601 -n {{ .Release.Namespace }}
+
+5. Visit localhost:5601 on your local browser to access Kibana. There are no credentials required, since the access to Elasticsearch cluster is set to anonymous.
+
+6. Go to Stack management -> Data Views (Under Kibana section) and create a new data view. You should see a single source of data called "fluentd". Create a data view by specifying a name and index pattern, which would match the "fluentd" source.
+
+7. Now you can go to Analytics -> Discover section and see all your Fluentd logs being visualized on Kibana Dashboard
 
